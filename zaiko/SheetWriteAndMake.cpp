@@ -125,7 +125,7 @@ void Ctags::addcelldata(UINT8* row, UINT8* col, UINT8* t, UINT8* s, UINT8* v, F*
 }
 
 void Ctags::writesheetdata() {
-    size_t msize = size_t(dlen) + 6000;
+    size_t msize = size_t(dlen) + 10000;
 
     wd = (UINT8*)malloc(msize);//メモリサイズ変更　書き込み用
     //std::cout << "データ更新" << p << std::endl;
@@ -368,7 +368,6 @@ void Ctags::writeSelection() {
 void Ctags::writecells() {
     const char* sheetstart = "<sheetData>";
     const char* shend = "</sheetData>";
-    std::cout << "セル更新" << p << std::endl;
 
     int Place = 0;
     while (sheetstart[writep] != '\0') {

@@ -536,6 +536,7 @@ inline UINT8* checkstyle::configstyle(UINT8* num)
 	csx->numFmtId = searchnumFmts(nf);//numFmt検索 ID加える
 
 	if (csx->numFmtId) {
+		std::cout << "match numfmts : " << csx->numFmtId << std::endl;
 		free(nf->Code); free(nf->Id); free(nf);
 	}
 	else {
@@ -565,6 +566,9 @@ inline UINT8* checkstyle::configstyle(UINT8* num)
 		}
 		rexfs[numFmtsNum]->Code[codelen] = '\0';
 
+		std::cout << "numfmts id: " << idnumb << " " << rexfs[numFmtsNum]->Id << std::endl;
+		std::cout << "numfmts code: " << idnumb << " " << rexfs[numFmtsNum]->Code << std::endl;
+
 		numFmtsNum++; nucount++;
 		free(numFmtsCount);
 		numFmtsCount = strchange.InttoChar(numFmtsNum, &place);
@@ -572,18 +576,23 @@ inline UINT8* checkstyle::configstyle(UINT8* num)
 		free(nf->Code); free(nf->Id); free(nf);
 	}
 
+	//bee cellstyle  <cellStyle name="標準 225" xfId="44468" xr:uid="{00000000-0005-0000-0000-0000E0750000}"/>
+	//shoplist cellstyle <cellStyle name="標準" xfId="0" builtinId="0"/>
+	//zozo same
+	//magaseek same
+	//smarby
 	//-------------  共通設定　cellstyle zozo設定 ----------------//
 	//buildinId customBuild name
-	const char* zostyle[] = { "30","1","20% - アクセント 1" };
+	const char* zostyle[] = { "0","標準" };
+	//name xr:uid
+	const char* beestyle[] = { "標準 225","{00000000-0005-0000-0000-0000E0750000}" };
 	char zozocsname[255] = { 0 };
 
 	cs->builtinId = (UINT8*)malloc(3);
 	memcpy(cs->builtinId, (UINT8*)zostyle[0], 3);
-	cs->customBuilt = (UINT8*)malloc(2);
-	memcpy(cs->customBuilt, (UINT8*)zostyle[1], 2);
 
 	char* zocsname = nullptr;
-	zocsname = SJIStoUTF8((char*)zostyle[2], zozocsname, 255);//フォントname UTF-8に変換
+	zocsname = SJIStoUTF8((char*)zostyle[1], zozocsname, 255);//フォントname UTF-8に変換
 	int zocsnalen = 0;
 	cs->name = (UINT8*)malloc(strlen(zocsname) + 1);
 	while (zocsname[zocsnalen] != '\0') {
@@ -592,6 +601,7 @@ inline UINT8* checkstyle::configstyle(UINT8* num)
 	}
 	cs->name[zocsnalen] = '\0';
 
+	cs->customBuilt = nullptr;
 	cs->xfId = nullptr;
 	cs->xruid = nullptr;
 
@@ -758,7 +768,10 @@ inline UINT8* checkstyle::configstyle(UINT8* num)
 			UINT8 er[] = "memory error";
 			return er;
 		}
-
+		else {
+			//for (int i = 0; i < fontNum; i++)
+				//free(fontRoot[i]);
+		}
 		rexfs[fontNum] = (Fonts*)malloc(sizeof(Fonts));
 		rexfs[fontNum]->sz = fo->sz;
 		rexfs[fontNum]->name = fo->name;
@@ -882,6 +895,7 @@ inline UINT8* checkstyle::configstyle(UINT8* num)
 			UINT8 er[] = "memory error";
 			return er;
 		}
+
 		rexfs[csXcount] = (stylexf*)malloc(sizeof(stylexf));
 		rexfs[csXcount]->numFmtId = csx->numFmtId;
 		rexfs[csXcount]->fontId = csx->fontId;
@@ -901,7 +915,7 @@ inline UINT8* checkstyle::configstyle(UINT8* num)
 		cellStyleXfsCount = strchange.InttoChar(cellstyleXfsNum, &place);
 
 		cx->xfId = strchange.InttoChar(cellstyleXfsNum - 1, &place);
-		/*
+
 		//--------- cellstyle 設定追加 --------//
 		cs->xfId = strchange.InttoChar(cellstyleXfsNum - 1, &place);
 
@@ -921,7 +935,6 @@ inline UINT8* checkstyle::configstyle(UINT8* num)
 
 		free(cellstyleCount);
 		cellstyleCount = strchange.InttoChar(cellstyleNum, &place);
-		*/
 	}
 
 	//style 決定
@@ -970,7 +983,6 @@ inline UINT8* checkstyle::configstyle(UINT8* num)
 		style = strchange.InttoChar(cellXfsNum - 1, &place);
 		//style 番号
 		stylelen = place;
-
 	}
 	//UINT32 stylenum = strchange.RowArraytoNum(num, strlen((const char*)num));//style 番号　数字に変換
 	return nullptr;
@@ -984,4 +996,5 @@ inline char* checkstyle::SJIStoUTF8(char* szSJIS, char* bufUTF8, int size)
 
 	return bufUTF8;
 }
+
 
