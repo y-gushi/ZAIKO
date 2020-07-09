@@ -175,6 +175,9 @@ filelist* HeaderRead::addfn(filelist* f, char* fn, int h)
     return f;
 }
 
+void HeaderRead::freeER() {
+    free(ER->comment);
+}
 
 void HeaderRead::endread(std::ifstream* fin) {
     //std::ifstream fin(readfile, std::ios::in | std::ios::binary);
@@ -189,7 +192,6 @@ void HeaderRead::endread(std::ifstream* fin) {
     curpos = endpos;
     curpos -= 1;
     fin->seekg(curpos, std::ios_base::beg);
-    //std::cout << "posishion" << curpos << std::endl;
 
     /*終端コード検索　ファイル終わりから*/
     while (curpos > 0) {
@@ -197,8 +199,6 @@ void HeaderRead::endread(std::ifstream* fin) {
         fin->read((char*)&readdata, sizeof(char));
         sig = sig << 8;
         sig += readdata;
-        //std::cout << sig << ',';
-        //std::cout << "posishion2:" << curpos << std::endl;
 
         if (sig == END_OF_CENTRAL) {
             curpos += 4;//シグネチャ分ポインタ戻す
@@ -211,7 +211,6 @@ void HeaderRead::endread(std::ifstream* fin) {
                 readdata = ((readdata & 0xFF) << (8 * i));
                 ER->discnum += readdata;
             }
-            std::cout << "このディスクの数:" << (ER->discnum) << std::endl;
 
             //セントラルディレクトリが開始するディスク 2byte
             ER->disccentral = 0;
@@ -220,7 +219,6 @@ void HeaderRead::endread(std::ifstream* fin) {
                 readdata = ((readdata & 0xFF) << (8 * i));
                 ER->disccentral += readdata;
             }
-            std::cout << "開始するディスク" << ER->disccentral << std::endl;
 
             //このディスク上のセントラルディレクトリレコードの数 2byte
             ER->centralnum = 0;
@@ -229,7 +227,6 @@ void HeaderRead::endread(std::ifstream* fin) {
                 readdata = ((readdata & 0xFF) << (8 * i));
                 ER->centralnum += readdata;
             }
-            std::cout << "セントラルディレクトリレコードの数" << ER->centralnum << std::endl;
 
             //セントラルディレクトリレコードの合計数 2byte
             ER->centralsum = 0;
@@ -239,7 +236,6 @@ void HeaderRead::endread(std::ifstream* fin) {
                 readdata = ((readdata & 0xFF) << (8 * i));
                 ER->centralsum += readdata;
             }
-            std::cout << "セントラルディレクトリレコードの合計数" << ER->centralsum << std::endl;
 
             //セントラルディレクトリのサイズ (バイト) 4byte
             ER->size = 0;
@@ -251,7 +247,6 @@ void HeaderRead::endread(std::ifstream* fin) {
                 //std::cout << readdata << std::endl;
                 ER->size += readdata;
             }
-            std::cout << "セントラルディレクトリのサイズ" << ER->size << std::endl;
 
             //セントラルディレクトリの開始位置のオフセット 4byte
             ER->position = 0;
@@ -261,7 +256,6 @@ void HeaderRead::endread(std::ifstream* fin) {
                 readdata = (readdata & 0xFF) << (8 * i);
                 ER->position += readdata;
             }
-            std::cout << "セントラルディレクトリの開始位置のオフセット:" << std::hex << ER->position << std::endl;
             readpos = ER->position;
 
             //セントラルディレクトリレコードの合計数 2byte
@@ -271,19 +265,14 @@ void HeaderRead::endread(std::ifstream* fin) {
                 readdata = ((readdata & 0xFF) << (8 * i));
                 ER->commentleng += readdata;
             }
-            std::cout << "ZIP file comment length" << std::hex << ER->commentleng << std::endl;
 
-            //std::cout << "ZIPファイルのコメント";
-            //ZIPファイルのコメント nbyte
             UINT32 msize = ((UINT32)ER->commentleng) + 1;
             ER->comment = (char*)malloc(msize);
             for (int i = 0; i < ER->commentleng; i++) {
                 fin->read((char*)&readdata, sizeof(char));
                 ER->comment[i] = (readdata & 0xFF);
-                //std::cout << ER->comment[i];
             }
-            //std::cout << std::endl;
-            //fin->close();
+
             break;
         }
         curpos--;
@@ -768,6 +757,7 @@ CenterDerect* HeaderRead::centeroneread(UINT64 pos, UINT32 size, UINT16 n, char*
         scd->filename[scd->filenameleng] = '\0';
         flag = searchChara(fn, scd->filename, scd->filenameleng);
 
+        scd->kakutyo = nullptr;
         if (scd->fieldleng > 0) {
             msize = ((UINT32)scd->fieldleng) + 1;
             scd->kakutyo = (char*)malloc(msize);
@@ -776,11 +766,8 @@ CenterDerect* HeaderRead::centeroneread(UINT64 pos, UINT32 size, UINT16 n, char*
                 scd->kakutyo[i] = readdata & 0xFF;
             }
         }
-        else {
-            scd->kakutyo = (char*)malloc(1);
-            scd->kakutyo = nullptr;
-        }
         
+        scd->comment = nullptr;
         if (scd->fielcomment) {
             msize = ((UINT32)scd->fielcomment) + 1;
             scd->comment = (char*)malloc(msize);
@@ -788,10 +775,6 @@ CenterDerect* HeaderRead::centeroneread(UINT64 pos, UINT32 size, UINT16 n, char*
                 fin->read((char*)&readdata, sizeof(char));
                 scd->comment[i] = readdata & 0xFF;
             }
-        }
-        else {
-            scd->comment = (char*)malloc(1);
-            scd->comment = nullptr;
         }
         
         sig = 0;

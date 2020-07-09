@@ -24,6 +24,10 @@ public:
 
     void colorsearch(Row* inrow, Items* IT, UINT8* itn, char* s);
 
+    void freerootmacht(MatchColrs* m);
+
+    UINT8* strtalloc(UINT8* s);
+
     UINT32 startR = 0;
     UINT32 inputColum = 0;
     UINT8* incolumn = nullptr;

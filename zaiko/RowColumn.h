@@ -68,6 +68,10 @@ public:
     UINT8* headXML = nullptr;
     UINT8* dimtopane = nullptr;
     UINT8* sFPr = nullptr;
+    UINT8* margeCellCount = nullptr;
+    UINT32 margeCellNum = 0;
+
+    MargeCell* margeCellRoot = nullptr;
     UINT8* MC;
 
     UINT8* data;
@@ -105,10 +109,14 @@ public:
     F* getFtag();
     void getfinalstr();
 
+    MargeCell* addmargecell(MargeCell* m, UINT8* s, UINT8* e);
+
     void getCtag();
     UINT8* getvalue();
     UINT8* getVorftag(const char* tag, UINT32 taglen, UINT32* size);
     UINT8* getSi(UINT8* v, UINT32 vl);
+
+    void getMargeCell();
 
     void Ctablefree(C* c);
     void Rowtablefree();

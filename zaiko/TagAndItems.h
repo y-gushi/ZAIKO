@@ -88,3 +88,9 @@ struct ColorAnSize {
     UINT8* color;
     UINT8* size;
 };
+
+struct MargeCell {
+    UINT8* scell;
+    UINT8* ecell;
+    MargeCell* next;
+};

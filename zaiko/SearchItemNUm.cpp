@@ -8,7 +8,7 @@ searchItemNum::searchItemNum(Items* itemstruct, Ctags* cs) {
 }
 
 searchItemNum::~searchItemNum() {
-
+    
 }
 
 bool searchItemNum::searchitemNumber(UINT8* uniq,char* one,char* two,char*three,char* four,char* style) {
@@ -166,8 +166,6 @@ bool searchItemNum::searchitemNumber(UINT8* uniq,char* one,char* two,char*three,
 
 void searchItemNum::colorsearch(Row* inrow, Items* IT, UINT8* itn,char* s) {
     const char* sizetable[] = { "090","100","110","120","130","140","150","160","F" };
-    const char* style[] = { "1206","28","29" };
-    UINT8 middle[] = "1206";
     Row* color = inrow;// = (Row*)malloc(sizeof(Row))
     UINT8* nextColor = nullptr;
     UINT8* nextSize = nullptr;
@@ -175,9 +173,9 @@ void searchItemNum::colorsearch(Row* inrow, Items* IT, UINT8* itn,char* s) {
     UINT8* nowSize = nullptr;
     UINT8* beforeColor = nullptr;
     UINT8* beforeSize = nullptr;
-    ColorAnSize* CandS;
-    Items* ite = (Items*)malloc(sizeof(Items));
-    ite = IT;
+    ColorAnSize* CandS = nullptr;
+    Items* ite = IT;
+
     bool b = false;
     bool n = false;
     int result = 0;
@@ -214,22 +212,26 @@ void searchItemNum::colorsearch(Row* inrow, Items* IT, UINT8* itn,char* s) {
                 if (matchflag != -1) {
                     CandS = Mstr.splitColor(color->cells->si);//カラーとサイズの分割
                     if (CandS->color && CandS->size) {
-                        //free(nowColor); free(nowSize);
+                        free(nowColor); free(nowSize);
                         nowColor = CandS->color; nowSize = CandS->size;
                     }
                     else {
                         nowColor = nullptr; nowSize = nullptr;
                     }
+                    /*
+                    //境界検索
                     if (color->next) {
                         if (color->next->cells) {
                             if (color->next->cells->si) {
                                 i = 0;
                                 while (color->next->cells->si[i] != '\0')//文字数カウント
                                     i++;
-                                //次の色全角半角変換
-                                color->next->cells->si = sear.changenumber(color->next->cells->si);
+                                color->next->cells->si = sear.changeKana(color->next->cells->si);//かな変換
+                                color->next->cells->si = sear.changenumber(color->next->cells->si);//次の色全角半角変換
+
                                 matchflag = Mstr.seachcharactors(ite->col, color->next->cells->si, i, 0);//セルカラーとアイテムの比較　部分検索
                                 if (matchflag != -1) {
+                                    free(nextColor); free(nextSize);
                                     ColorAnSize* nCandnS = Mstr.splitColor(color->next->cells->si);//カラーとサイズの分割
                                     nextColor = nCandnS->color;
                                     nextSize = nCandnS->size;
@@ -250,14 +252,13 @@ void searchItemNum::colorsearch(Row* inrow, Items* IT, UINT8* itn,char* s) {
                     else {
                         nextColor = nullptr; nextSize = nullptr;
                     }
+                    */
                     if (nowColor && nowSize) {
                         result = strcmp((const char*)nowColor, (const char*)ite->col);//カラー比較
                         if (result == 0) {//カラー一致
-
                             for (int i = 0; i < 9; i++) {//サイズループ
                                 result = strcmp((const char*)nowSize, (const char*)sizetable[i]);
-                                if (result == 0) {//サイズ一致
-                                   
+                                if (result == 0) {//サイズ一致                                   
                                     UINT8* sizeMatch = nullptr;//サイズ保存用
                                     switch (i) {//該当サイズ
                                     case 0:sizeMatch = ite->s90; break;
@@ -273,39 +274,75 @@ void searchItemNum::colorsearch(Row* inrow, Items* IT, UINT8* itn,char* s) {
                                         break;
                                     }
                                     if (sizeMatch) {
-                                        rootMat = addmatches(rootMat, itn, nowColor);//カラー、サイズ一致で保存
+                                        UINT8* itnadd = strtalloc(itn);
+                                        UINT8* mcol = strtalloc(nowColor);
+                                        rootMat = addmatches(rootMat, itnadd, mcol);//カラー、サイズ一致で保存
 
                                         UINT8* nr = changenum.InttoChar(color->r, &result);
 
-                                        size_t sstrl = strlen((const char*)s) + 1;
-                                        char* sv = (char*)malloc(sstrl);
-                                        strcpy_s(sv, sstrl, s);
+                                        UINT8* sv = strtalloc((UINT8*)s);
+
+                                        UINT8* sizadd = strtalloc(sizeMatch);
 
                                         UINT8* TV = nullptr;
                                         UINT8* SVI= nullptr;
                                         F* FV = nullptr;
-                                        Cels->addcelldata(nr, incolumn, TV, (UINT8*)sv, sizeMatch, FV, SVI);
+                                        Cels->addcelldata(nr, incolumn, TV, sv, sizadd, FV, SVI);
 
                                     }
                                 }
                             }
-                            free(nextColor); free(nextSize);
                         }
                     }
                 }
             }
+            /*
+            //境界検索
             if (color->cells->si) {
-                beforeColor = nowColor;
-                beforeSize = nowSize;
+                free(beforeSize); free(beforeColor);
+                if (nowColor) {
+                    beforeColor = strtalloc(nowColor);
+                }
+                else {
+                    beforeColor = nullptr;
+                }
+                if (nowSize) {
+                    beforeSize = strtalloc(nowSize);
+                }
+                else {
+                    beforeSize = nullptr;
+                }
             }
             else {
-                //free(beforeColor); free(beforeSize);
                 beforeColor = nullptr;
                 beforeSize = nullptr;
             }
+            */
         }
         color = color->next;
     }
+    free(beforeSize); free(beforeColor);
+    free(nextColor); free(nextSize);
+    free(nowColor); free(nowSize);
+}
+
+void searchItemNum::freerootmacht(MatchColrs* m) {
+    MatchColrs* p = nullptr;
+    while (m) {
+        p = m->next;
+        free(m->color);
+        free(m->itemnum);
+        free(m);
+        m = p;
+    }
+}
+
+UINT8* searchItemNum::strtalloc(UINT8* s) {
+    size_t sizlen = strlen((const char*)s) + 1;
+    UINT8* sizadd = (UINT8*)malloc(sizlen);
+    strcpy_s((char*)sizadd, sizlen, (const char*)s);
+
+    return sizadd;
 }
 
 MatchColrs* searchItemNum::addmatches(MatchColrs* m, UINT8* i, UINT8* c)

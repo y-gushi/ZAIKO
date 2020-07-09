@@ -98,10 +98,12 @@ UINT8* unitC::changenumber(UINT8* c)
 	int i = 0;
 	int j = 0;
 
-	UINT8* after = (UINT8*)malloc(m + 1);
+	UINT8* after = nullptr;
 
 	//‘SŠp‰p”ƒT[ƒ`
 	if (m > 2) {
+		after = (UINT8*)malloc(m + 1);
+
 		while (c[i] != '\0') {
 			zen = 0;
 			if (i > 2) {

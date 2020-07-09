@@ -212,9 +212,10 @@ ColorAnSize* MargeaSearch::splitColor(UINT8* cstr) {
             std::string color = itemchange.CharChenge(cas->color);
             std::cout << "split•¶Žš : " << color << " size : " << cas->size << std::endl;
 
-            free(scol); free(split); free(ssiz); free(splitspace);
+            
         }
     }
+    free(scol); free(split); free(ssiz); free(splitspace);
 
     return cas;
 }

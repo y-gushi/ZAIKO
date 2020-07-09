@@ -168,6 +168,7 @@ public:
     CDdataes* tallocCDdataes();
     CDdataes* addCDdata(CDdataes* c, CenterDerect* cddata);
     filelist* addfn(filelist* f, char* fn, int h);
+    void freeER();
 };
 
 /*ƒwƒbƒ_[î•ñ‚Ìì¬*/

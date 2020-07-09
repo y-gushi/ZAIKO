@@ -186,16 +186,17 @@ styleread::~styleread()
 	}
 
 	free(styleSheetStr);
-
 	free(extLstStr);
 
-	/*
-	freeborder(BorderRoot);
-	freecellxfs(cellXfsRoot);
-	freenumFMts(numFmtsRoot);
-	freecellstyle(cellStyleRoot);
-	freeDxf(dxfRoot);
-	*/
+	free(fontCount);
+	free(kFonts);
+	free(fillCount);
+	free(borderCount);
+	free(cellStyleXfsCount);
+	free(cellXfsCount);
+	free(numFmtsCount);
+	free(cellstyleCount);
+	free(dxfsCount);
 }
 
 void styleread::freefonts(Fonts* f) {

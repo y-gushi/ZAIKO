@@ -462,6 +462,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             else {
                 totalcount = 20;
             }
+            free(deco);
 
 #ifdef UNICODE
 

@@ -36,8 +36,8 @@ void Ctags::addcelldata(UINT8* row, UINT8* col, UINT8* t, UINT8* s, UINT8* v, F*
         UINT8* hT = (UINT8*)malloc(6);
         strcpy_s((char*)hT, 6, (const char*)HT);
         UINT8* thick = (UINT8*)malloc(1); thick = nullptr;
-        UINT8* rs = (UINT8*)malloc(1); rs = nullptr;
-        UINT8* CF = (UINT8*)malloc(1); CF = nullptr;
+        UINT8* rs = nullptr;
+        UINT8* CF = nullptr;
         UINT8 CH[] = "1";//customhigh
         UINT8* cH = (UINT8*)malloc(2);
         strcpy_s((char*)cH, 2, (const char*)CH);
@@ -72,10 +72,10 @@ void Ctags::addcelldata(UINT8* row, UINT8* col, UINT8* t, UINT8* s, UINT8* v, F*
             else {
                 //std::cout << " セル追加　row : " << ro->r << " 行 " << incolnum << " s " << s << std::endl;
                 //incolnum = NA.NumbertoArray(colnum_start);//数字を文字数時に
-                UINT8* n1 = (UINT8*)malloc(1); n1 = nullptr;
-                UINT8* n2 = (UINT8*)malloc(1); n2 = nullptr;
-                UINT8* n3 = (UINT8*)malloc(1); n3 = nullptr;
-                F* n4 = (F*)malloc(sizeof(F)); n4 = nullptr;
+                UINT8* n1 = nullptr;
+                UINT8* n2 = nullptr;
+                UINT8* n3 = nullptr;
+                F* n4 = nullptr;
                 UINT8* sv = (UINT8*)malloc(5);
                 strcpy_s((char*)sv, 5, (const char*)nomals);
                 ro->cells = addCtable(ro->cells, n1, sv, n2, incolnum, n3, n4);
@@ -110,7 +110,7 @@ void Ctags::addcelldata(UINT8* row, UINT8* col, UINT8* t, UINT8* s, UINT8* v, F*
             UINT8* Bf = (UINT8*)malloc(1); Bf = nullptr;
             UINT8* Cuw = (UINT8*)malloc(1); Cuw = nullptr;
 
-            cls = addcolatyle(cls, col, col, wi, styl, Hi, Bf, Cuw);//cols 追加
+            cls = addcolatyle(cls, mincol, maxcol, wi, styl, Hi, Bf, Cuw);//cols 追加
         }
     }
     rp = 0;//桁数
@@ -246,9 +246,9 @@ void Ctags::writecols() {
 }
 //selection pane書きこみ
 void Ctags::writeSelection() {
-    const char* selpane[] = { "<selection"," activeCell=\"","\" sqref=\"","</sheetView>","</sheetViews>", " pane=\"" };
+    const char* selpane[] = { "<selection"," activeCell=\""," sqref=\"","</sheetView>","</sheetViews>", " pane=\"" };
     const char* panes[] = { "<pane"," xSplit=\""," ySplit=\""," topLeftCell=\""," activePane=\""," state=\"" };
-    std::cout << "セレクション更新" << p << std::endl;
+    const char selclose[] = "/>";
 
     // <sheetview書き込み
     while (dimtopane[writep] != '\0') {
@@ -329,26 +329,28 @@ void Ctags::writeSelection() {
             wd[p] = '"'; p++;
         }
 
-        while (selpane[1][writep] != '\0') {
-            wd[p] = selpane[1][writep]; p++; writep++;
-        }writep = 0;
         if (Sel->a) {
+            while (selpane[1][writep] != '\0') {
+                wd[p] = selpane[1][writep]; p++; writep++;
+            }writep = 0;
             while (Sel->a[writep] != '\0') {//activcell
                 wd[p] = Sel->a[writep]; p++; writep++;
             }writep = 0;
+            wd[p] = '"'; p++;
         }
 
-        while (selpane[2][writep] != '\0') {
-            wd[p] = selpane[2][writep]; p++; writep++;
-        }writep = 0;
         if (Sel->s) {
+            while (selpane[2][writep] != '\0') {
+                wd[p] = selpane[2][writep]; p++; writep++;
+            }writep = 0;
             while (Sel->s[writep] != '\0') {//sqref
                 wd[p] = Sel->s[writep]; p++; writep++;
             }writep = 0;
+            wd[p] = '"'; p++;
         }
 
-        while (closetag[writep] != '\0') {
-            wd[p] = closetag[writep]; p++; writep++;
+        while (selclose[writep] != '\0') {
+            wd[p] = selclose[writep]; p++; writep++;
         }writep = 0;
         Sel = Sel->next;
     }

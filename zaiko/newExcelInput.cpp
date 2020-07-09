@@ -59,6 +59,17 @@ char* excelRead::searchshipplace(char* pl) {
     char zos[5] = { 0 };
     char sbs[7] = { 0 };
     char sls[9] = { 0 };
+    //bee 1012
+    //magaseek 710
+    //smarby 1038
+    //zozo 711
+    //shoplist 715
+
+    char bS[] = "1012";
+    char msS[] = "710";
+    char smS[] = "1038";
+    char zoS[] = "711";
+    char slS[] = "715";
 
     int result = 0;
 
@@ -79,7 +90,6 @@ char* excelRead::searchshipplace(char* pl) {
         if (result == 0) {
             char* sty = (char*)malloc(9);
             strcpy_s(sty,9, ms);
-            //strcpy_s(sty, 5, magas);
             return sty;
         }
 
@@ -87,7 +97,6 @@ char* excelRead::searchshipplace(char* pl) {
         if (result == 0) {
             char* sty = (char*)malloc(9);
             strcpy_s(sty,9, sl);
-            //strcpy_s(sty, 5, shpls);
             return sty;
         }
 
@@ -141,7 +150,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     char* inTwostr = nullptr;
     char* inThreestr = nullptr;
     char* inFourstr = nullptr;
-    char strend = '\0';
+    UINT8 strend = '\0';
 
     //ロケール指定
     setlocale(LC_ALL, "japanese");
@@ -152,6 +161,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     inMainstr = (char*)malloc(200);
     
     inMainstr=SJIStoUTF8(wStrC, inMainstr, 100);//shift-jis utf8変換
+    searchItemNum* onetstr = new searchItemNum(nullptr, nullptr);
 
     if (lstrlenW(intxts) > 0) {
         //変換
@@ -160,7 +170,8 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
         inSubstr=SJIStoUTF8(wStrC, inSubstr, 100);
     }
     else {
-        inSubstr = &strend;
+        UINT8* cstr= onetstr->strtalloc(&strend);
+        inSubstr = (char*)cstr;
     }
     if (lstrlenW(intxttwo) > 0) {
         //変換
@@ -169,7 +180,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
         inTwostr = SJIStoUTF8(wStrC, inTwostr, 50);
     }
     else {
-        inTwostr = &strend;
+        inTwostr = (char*)onetstr->strtalloc(&strend);
     }
     if (lstrlenW(intxtthree) > 0) {
         //変換
@@ -178,7 +189,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
         inThreestr = SJIStoUTF8(wStrC, inThreestr, 50);
     }
     else {
-        inThreestr = &strend;
+        inThreestr = (char*)onetstr->strtalloc(&strend);
     }
     if (lstrlenW(intxtfour) > 0) {
         //変換
@@ -187,8 +198,9 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
         inFourstr = SJIStoUTF8(wStrC, inFourstr, 50);
     }
     else {
-        inFourstr = &strend;
+        inFourstr = (char*)onetstr->strtalloc(&strend);
     }
+    delete onetstr;
 
     //文字連結検索用
     char sumstr[255] = { 0 };
@@ -233,7 +245,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
 
     //ショップ検索
     setstyle = searchshipplace(sumstr);
-
+    //char* styleset = searchshipplace(sumstr);
     /*-----------------------------
     入力文字チェック
     -------------------------------*/
@@ -267,6 +279,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     HeaderRead* hr = new HeaderRead(plfn);
     CenterDerect* cddata = nullptr;//セントラルディレクトのデータ
     hr->endread(&PLR);//終端コードの読み込み
+    hr->freeER();
 
     DeflateDecode* decShare = new DeflateDecode(&PLR);//sharestring ファイルの保存用
     //share セントラル取得
@@ -318,7 +331,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
 
     delete decsheet;//デコードデータ削除
 
-    shipinfo* sg=new shipinfo(ms->rows);
+    shipinfo* sg=new shipinfo(ms->rows);//シートデータ参照　freeなし
 
     sg->GetItems();//mallocなし　シートとセット
 
@@ -400,6 +413,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     HeaderRead* hr2 = new HeaderRead(orderfn);
     hr2->endread(&Zr);//終端コードの読み込み
     
+    
     DeflateDecode* Sdeco = new DeflateDecode(&Zr);
 
     while (hr2->filenum < hr2->ER->centralsum) {
@@ -445,6 +459,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
 
     delete Sdeco;
     
+
     //--------------style 圧縮--------------//
     
     encoding* styen = new encoding;//sharestring 圧縮
@@ -466,6 +481,8 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
         cddata->nonsize = (UINT32)sr->wdlen;//内容変更したら　更新必要
 
         hw.centralwrite(cdf, *cddata);
+
+        //hr2->freeheader();
     }
 
     zip.writeposition += CDp;//データ書き込み位置更新
@@ -476,6 +493,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     
     delete sr;//style 削除
     
+
     /*-----------------------
     shareシート読み込み
     -----------------------*/
@@ -493,6 +511,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     if (cddata) {//ファイル名が合えばローカルヘッダー読み込み
         hr2->localread(cddata->localheader, &Zr);//sharesstringsの読み込み
         decShare->dataread(hr2->LH->pos, cddata->nonsize);
+        hr2->freeLH();
     }
         
     delete sharray;
@@ -511,10 +530,15 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     sharray->searchSi(inSubstr, inTwostr,inThreestr,inFourstr);//マッチした文字列のSi番号取得　なければnullptr
         
     //シェアー書き込み
-    UINT8* sharedata = nullptr;
+    UINT8* sharedata = nullptr;//share書き込み　データ
         
     sharedata= sharray->writeshare((UINT8*)inMainstr, strlen(inMainstr), inFourstr, inThreestr, inTwostr, inSubstr);//share文字列書き込み share data更新
     UINT64 shrelength = sharray->writeleng;
+    free(inMainstr);
+    free(inSubstr);
+    free(inTwostr);
+    free(inThreestr);
+    free(inFourstr);
 
     /*--------------------------
     share data書き込み　圧縮
@@ -537,6 +561,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
         cddata->nonsize = sharray->writeleng;//内容変更したら　更新必要
 
         hw.centralwrite(cdf, *cddata);
+        //hr2->freeheader();
     }
 
     zip.writeposition += CDp;//データ書き込み位置更新
@@ -563,8 +588,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     int result = 0;
 
     //品番、カラーエラー用
-    MatchColrs* matchs = (MatchColrs*)malloc(sizeof(MatchColrs));
-    matchs = nullptr;
+    MatchColrs* matchs = nullptr;
     MatchColrs* matchsroot = nullptr;
 
     //テスト用
@@ -584,14 +608,13 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
             mh->sheetread();
 
             sI = new searchItemNum(sg->its, mh);
-
             t = sI->searchitemNumber(sharray->uniqstr, sharray->inputsinum[0], sharray->inputsinum[1], sharray->inputsinum[2], sharray->inputsinum[3], styleset);//品番検索　＆　セルデータ追加　シェアー消去（入れる場合は引数に）
 
             if (t)
             {//一致品番あった場合
                 if (sI->rootMat) {//一致アイテムの保存
                     while (sI->rootMat) {
-                        matchs = sI->addmatches(matchs, sI->rootMat->itemnum, sI->rootMat->color);
+                        matchs = sI->addmatches(matchs, sI->rootMat->itemnum, sI->rootMat->color);//si コピー mallocなし
                         sI->rootMat = sI->rootMat->next;
                     }
                 }
@@ -645,7 +668,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
             result = strcmp(hr2->scd->filename, sharefn);
             int styresul= strcmp(hr2->scd->filename, stylefn);
 
-            if (result != 0 && styresul != 0) {
+            if (result != 0) {//styleseet 入れる場合-> && styresul != 0
                 //cddata一旦書き込み
                 UINT32 LHposstock = zip.writeposition;//ローカルヘッダーの位置更新用
                 zip.LoclheadAndDatacopy(hr2->scd->localheader, fpr, orderfn);//ローカルヘッダー検索＆書き込み
@@ -655,14 +678,11 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
         }
         hr2->freeheader();
     }
-    std::cout << "end item search" << std::endl;
     //hr2->freetxt(inptxt);//入力文字列の削除
-    
-    delete(sharray);
+
     free(styleset);
 
-    Items* errorItem = (Items*)malloc(sizeof(Items));
-    errorItem = nullptr;
+    Items* errorItem = nullptr;
 
     sI = new searchItemNum(nullptr, nullptr);
 
@@ -692,10 +712,15 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
             if (matchor == 0 && matchcol == 0) {//品番、いろ一致入力
             }
             else {
-                //エラー　シートなし
-                errorItem = sI->addItems(errorItem, sg->its);
-                char* shiftj = sI->CharChenge(sg->its->col);
-                std::cout << "シートなし" << sg->its->itn << std::endl;
+                //エラー　シートなし                
+                UINT8* iTeM = sI->strtalloc(sg->its->itn);
+                UINT8* iCoL = sI->strtalloc(sg->its->col);
+                Items* itms = (Items*)malloc(sizeof(Items));
+                itms->itn = iTeM;
+                itms->col = iCoL;
+
+                errorItem = sI->addItems(errorItem, itms);
+                //char* shiftj = sI->CharChenge(sg->its->col);
             }
             matchs = matchsroot;//初期化
             sg->its = sg->its->next;
@@ -704,9 +729,8 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     else {
         std::cout << "sheet no error" << std::endl;
     }
-    //free(errorItem);
-    //free(matchsroot);
-
+    sI->freerootmacht(matchsroot);
+    delete sharray;
     delete sg;//アイテム　文字データ シートとセット削除
     delete ms;//シート　セル削除 PLシートデータ
 

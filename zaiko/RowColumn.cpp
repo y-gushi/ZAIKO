@@ -1,7 +1,6 @@
 #include "RowColumn.h"
 
-Ctags::Ctags(UINT8* decorddata, UINT64 datalen, shareRandD* shdata)
-{
+Ctags::Ctags(UINT8* decorddata, UINT64 datalen, shareRandD* shdata) {
     data = decorddata;
     dlen = datalen;
     sh = shdata;
@@ -9,8 +8,7 @@ Ctags::Ctags(UINT8* decorddata, UINT64 datalen, shareRandD* shdata)
     MC = nullptr;
 }
 
-Ctags::~Ctags()
-{
+Ctags::~Ctags() {
     free(headXML);
     free(dimtopane);
 
@@ -22,6 +20,7 @@ Ctags::~Ctags()
     free(dm->eR);
 
     free(MC);
+    free(margeCellCount);
 
     free(fstr);
     free(wd);
@@ -64,6 +63,11 @@ C* Ctags::addCtable(C* c, UINT8* tv, UINT8* sv, UINT8* si, UINT32 col, UINT8* v,
         }
     }
     else if (col == c->col) {//列番号同じ　情報更新
+        free(c->val);
+        free(c->t);
+        free(c->s);
+        free(c->si);
+        free(c->f);
         c->val = v;
         c->t = tv;
         c->s = sv;
@@ -300,11 +304,9 @@ void Ctags::getCtag() {
             endtag[j] = endtag[j + 1];
             if (j < 3 - 1)
                 ttag[j] = ttag[j + 1];
-
             if (j < (2 - 1))
                 ftag[j] = ftag[j + 1];
         }
-
         endtag[4 - 1] = ttag[3 - 1] = ftag[2 - 1] = data[p];
         endtag[4] = ttag[3] = ftag[2] = '\0';
         p++;//位置移動
@@ -338,7 +340,6 @@ void Ctags::getCtag() {
 
             UINT32 csize = collen + 1;
             UINT32 rsize = rowlen + 1;
-
             col = (UINT8*)malloc(csize);
             row = (UINT8*)malloc(rsize);
 
@@ -349,7 +350,6 @@ void Ctags::getCtag() {
             for (UINT32 i = 0; i < rowlen; i++) {
                 row[i] = data[p]; p++;
             }
-
             col[collen] = '\0'; row[rowlen] = '\0';
             colnum = NA.ColumnArraytoNumber(col, collen);//文字数値変換
             rownum = NA.RowArraytoNum(row, rowlen);//数字変換
@@ -468,6 +468,7 @@ Row* Ctags::addrows(Row* row, UINT32 r, UINT8* spanS, UINT8* spanE, UINT8* ht, U
         row->next = newr;
     }
     else if (r == row->r) {//行番号同じ　更新
+        //free
         row->s = s;
         row->spanS = spanS;
         row->spanE = spanE;
@@ -749,7 +750,7 @@ void Ctags::getselection() {
     int sqreflen = 0;
 
     if (data[p] == '/') {//tag終了
-        sct = SLTaddtable(sct, pa, ac, sq);//すべてnullptrわたす
+        //sct = SLTaddtable(sct, pa, ac, sq);//すべてnullptrわたす
     }
     else {
         while (data[p] != '>') {
@@ -802,9 +803,10 @@ void Ctags::getselection() {
                 sq[sqreflen] = '\0';
             }
         }
-        if (pa || ac || sq)
-            sct = SLTaddtable(sct, pa, ac, sq);//構造体へコピー
+        //if (pa || ac || sq)
     }
+    sct = SLTaddtable(sct, pa, ac, sq);//構造体へコピー
+
 }
 
 void Ctags::GetPane() {
@@ -1084,20 +1086,7 @@ void Ctags::getfinalstr() {
         mresult = strncmp((const char*)Sm, marge, 16);
 
         if (result == 0) {//marge cell
-            UINT32 len = UINT32(i);
-
-            while (data[p] != '"') {
-                fstr[i] = data[p];
-                p++; i++;
-            }
-
-            len = UINT32(i) - len;//string leng
-            MC = (UINT8*)malloc(len + 1);
-
-            for (UINT32 j = 0; j < len; j++)
-                MC[j] = data[p - len + j];
-            MC[len] = '\0';
-
+            margeCellCount = getvalue();
         }
 
         if (mresult == 0) {
@@ -1118,39 +1107,88 @@ void Ctags::getfinalstr() {
     fstr[s] = '\0';
 
     /* <mergeCells count="15">
-
     <mergeCell ref="E11:G11"/>
-
     <mergeCell ref="E12:G12"/>
-
     <mergeCell ref="O13:P13"/>
-
     <mergeCell ref="E15:M15"/>
-
     <mergeCell ref="B15:B16"/>
-
     <mergeCell ref="C15:C16"/>
-
     <mergeCell ref="D15:D16"/>
-
     <mergeCell ref="N15:N16"/>
-
     <mergeCell ref="O15:O16"/>
-
     <mergeCell ref="P15:P16"/>
-
     <mergeCell ref="B2:P2"/>
-
     <mergeCell ref="B3:P3"/>
-
     <mergeCell ref="B4:P4"/>
-
     <mergeCell ref="B5:P5"/>
-
     <mergeCell ref="B6:P6"/>
-
     </mergeCells> */
+}
 
+MargeCell* Ctags::addmargecell(MargeCell* m, UINT8* s, UINT8* e) {
+    if (!m) {
+        m = (MargeCell*)malloc(sizeof(MargeCell));
+        m->scell = s;
+        m->ecell = e;
+        m->next = nullptr;
+    }
+    else
+        m->next = addmargecell(m->next, s, e);
+
+    return m;
+}
+
+void Ctags::getMargeCell() {
+    const char ref[] = "ref=\"";//5文字
+
+    UINT8 Ref[6] = { 0 };
+    int result = 0;
+
+    UINT8* marcell = nullptr;
+    UINT8* stacell = nullptr;
+    UINT8* endcell = nullptr;
+
+    while (data[p] != '>') {
+        for (int j = 0; j < 5 - 1; j++) {
+            Ref[j] = Ref[j + 1];
+        }
+        Ref[5 - 1] = data[p];
+        p++;
+
+        result = strncmp((const char*)Ref, ref, 5);
+        if (result == 0) {//marge cell
+            marcell = getvalue();
+
+            //文字分ける
+            size_t mlen = 0;
+            while (marcell[mlen] != ':')
+                mlen++;
+
+            stacell = (UINT8*)malloc(mlen + 1);
+            for (size_t i = 0; i < mlen; i++)
+                stacell[i] = marcell[i];
+            stacell[mlen] = '\0';
+
+            mlen++;//:skip
+
+            size_t  elen = mlen;//後半スタート位置
+            while (marcell[mlen] != '\0')
+                mlen++;
+
+            size_t memsiz = mlen - elen;
+
+            endcell = (UINT8*)malloc(memsiz + 1);
+            elen = 0;
+            for (size_t i = 0; i < memsiz; i++) {
+                endcell[i] = marcell[elen];
+                elen++;
+            }
+            endcell[memsiz] = '\0';
+
+            free(marcell);
+        }
+    }
+    margeCellRoot = addmargecell(margeCellRoot, stacell, endcell);
 }
 
 void Ctags::Ctablefree(C* c) {
@@ -1202,9 +1240,9 @@ void Ctags::Rowtablefree() {
 
 void Ctags::selectfree() {
     selection* q;
-
     while (sct) {
         q = sct->next;
+
         free(sct->a);
         free(sct->p);
         free(sct->s);
@@ -1228,7 +1266,6 @@ void Ctags::colfree() {
         free(cls->min);
         free(cls->style);
         free(cls->width);
-
         free(cls);
 
         cls = q;
@@ -1247,7 +1284,6 @@ void Ctags::panefree() {
         free(Panes->ySp);
         free(Panes->xSp);
         free(Panes);
-
         Panes = q;
     }
 }

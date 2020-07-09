@@ -9,8 +9,10 @@ shareRandD::shareRandD(UINT8* d, UINT64 l) {
 }
 
 shareRandD::~shareRandD() {
-    //for (int i = 0; i < mycount; i++)//シェアー文字列　メモリ解放
-    //    Sitablefree(sis[i]);
+    for (int i = 0; i < mycount; i++) {//シェアー文字列　メモリ解放
+        if(sis[i])
+            Sitablefree(sis[i]);
+    }
     //free(writedata);
     //free(inputsinum);
 }
@@ -19,10 +21,8 @@ void shareRandD::getSicount() {
     UINT8 count[] = "count=\"";//rの数
     UINT8 uniquecount[] = "uniqueCount=\"";//siの数
 
-    unsigned char* searchcount = (unsigned char*)malloc(8);//検索スライド用 7文字
-    memset(searchcount, 0, 8);
-    unsigned char* searchunique = (unsigned char*)malloc(14);
-    memset(searchunique, 0, 14);
+    unsigned char searchcount[8] = { 0 };//検索スライド用 7文字
+    unsigned char searchunique[14] = { 0 };
 
     UINT8* getcount = nullptr;
     UINT8* getunique = nullptr;
@@ -56,7 +56,6 @@ void shareRandD::getSicount() {
                 break;
             }
         }
-        free(searchcount);
     }
 
     if (searchunique) {
@@ -85,7 +84,6 @@ void shareRandD::getSicount() {
                 break;
             }
         }
-        free(searchunique);
     }
 
     if (getcount) {
@@ -391,6 +389,7 @@ void shareRandD::ReadShare() {
                         while (sd[dp + i] != '<') {
                             i++;//文字数カウント
                         }
+                        
                         UINT32 msize = i + 1;
                         UINT8* sistr = (UINT8*)malloc(msize);//tagの値
                         if (sistr) {
@@ -405,7 +404,6 @@ void shareRandD::ReadShare() {
                             Tcount++;//t配列数
                         }
                         else {
-                            std::cout << "cant get si str" << std::endl;
                         }
                     }
                 }
@@ -415,7 +413,6 @@ void shareRandD::ReadShare() {
         }
     }
     else {
-        std::cout << "malloc si get null" << std::endl;
     }
 }
 

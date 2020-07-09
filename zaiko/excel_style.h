@@ -6,81 +6,42 @@
 #include "ChangeArrayNumber.h"
 
 struct Fonts {
-
 	UINT8* biu;//Bold‚È‚Ç?
-
 	UINT8* sz;
-
 	UINT8* color;
-
 	UINT8* name;
-
 	UINT8* family;
-
 	UINT8* charset;
-
 	UINT8* scheme;
-
 	UINT8* indexed;
-
 	UINT8* rgb;
-
 	Fonts* next;
-
 };
-
-
 
 /*fill“à—e--------------*/
-
-
-
 struct FillPattern
-
 {
-
 	UINT8* patternType;
-
 };
-
-
 
 struct fgcolor
-
 {
-
 	UINT8* theme;
-
 	UINT8* tint;
-
 	UINT8* rgb;
-
 };
-
-
 
 struct bgcolor
-
 {
-
 	UINT8* indexed;
-
 };
 
-
-
 struct Fills
-
 {
-
 	FillPattern* patten;
-
 	fgcolor* fg;
-
 	bgcolor* bg;
-
 	Fills* next;
-
 };
 
 /*-----------------------*/
