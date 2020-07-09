@@ -25,10 +25,12 @@ UINT8* unitC::changeKana(UINT8* s) {
 	int i = 0;
 	int j = 0;
 
-	UINT8* after = (UINT8*)malloc(m + 1);
+	UINT8* after = nullptr;
 
 	//‘SŠp‰p”ƒT[ƒ`
 	if (m > 2) {
+		after = (UINT8*)malloc(m + 1);
+
 		while (s[i] != '\0') {
 			zen = 0;
 			if (i > 1) {
@@ -78,9 +80,15 @@ UINT8* unitC::changeKana(UINT8* s) {
 			j++; i++;
 		}
 		after[j] = '\0';
+
+		free(s);
+		s = nullptr;
+		return after;
 	}
-	free(s);
-	return after;
+	else {
+		return s;
+	}
+	
 }
 
 UINT8* unitC::changenumber(UINT8* c)
@@ -142,10 +150,15 @@ UINT8* unitC::changenumber(UINT8* c)
 			j++; i++;
 		}
 		after[j] = '\0';
-	}
-	free(c);
 
-	return after;
+		free(c);
+		c = nullptr;
+		return after;
+	}
+	else {
+		return c;
+	}
+	
 }
 
 UINT8* unitC::slipNum(UINT8* s)
@@ -166,7 +179,6 @@ UINT8* unitC::slipNum(UINT8* s)
 	UINT8* after=(UINT8*)malloc(msize);
 	UINT8* more = (UINT8*)malloc(msize);
 
-	Num = (NumberFlag*)malloc(sizeof(NumberFlag));
 	Num = nullptr;
 
 	i = 0;

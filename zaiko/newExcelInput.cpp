@@ -45,7 +45,7 @@ std::string multi_to_utf8_cppapi(std::string const& src)
     return wide_to_utf8_cppapi(wide);
 }
 
-char* excelRead::searchshipplace(char* pl) {
+styles* excelRead::searchshipplace(char* pl) {
     char search[5] = { 0 };
     int len = 0;
     char ms[]="magaseek";//8
@@ -71,6 +71,12 @@ char* excelRead::searchshipplace(char* pl) {
     char zoS[] = "711";
     char slS[] = "715";
 
+    char zocel[] = "309";
+    char slicel[] = "422";
+    char magcel[] = "424";
+    char smacel[] = "310";
+    char becel[] = "1074";
+
     int result = 0;
 
     while (pl[len] != '\0') {
@@ -88,46 +94,74 @@ char* excelRead::searchshipplace(char* pl) {
 
         result = strncmp(mss, ms, 8);
         if (result == 0) {
-            char* sty = (char*)malloc(9);
-            strcpy_s(sty,9, ms);
-            return sty;
+            char* sty = (char*)malloc(4);
+            strcpy_s(sty,4, msS);
+            char* csty = (char*)malloc(4);
+            strcpy_s(csty, 4, magcel);
+            styles* St = (styles*)malloc(sizeof(styles));
+            St->daystyle = sty;
+            St->celstyle = csty;
+            return St;
         }
 
         result = strncmp(mss, sl, 8);
         if (result == 0) {
-            char* sty = (char*)malloc(9);
-            strcpy_s(sty,9, sl);
-            return sty;
+            char* sty = (char*)malloc(4);
+            strcpy_s(sty,4, slS);
+            char* csty = (char*)malloc(4);
+            strcpy_s(csty, 4, slicel);
+            styles* St = (styles*)malloc(sizeof(styles));
+            St->daystyle = sty;
+            St->celstyle = csty;
+            return St;
         }
 
         result = strncmp(sbs, sb, 6);
         if (result == 0) {
-            char* sty = (char*)malloc(7);
-            strcpy_s(sty,7, sb);
-            return sty;
+            char* sty = (char*)malloc(5);
+            strcpy_s(sty,5, smS);
+            char* csty = (char*)malloc(4);
+            strcpy_s(csty, 4, smacel);
+            styles* St = (styles*)malloc(sizeof(styles));
+            St->daystyle = sty;
+            St->celstyle = csty;
+            return St;
         }
 
         result = strncmp(zos, zo, 4);
         if (result == 0) {
-            char* sty = (char*)malloc(5);
-            strcpy_s(sty, 5,zo);
-            return sty;
+            char* sty = (char*)malloc(4);
+            strcpy_s(sty, 4,zoS);
+            char* csty = (char*)malloc(4);
+            strcpy_s(csty, 4, zocel);
+            styles* St = (styles*)malloc(sizeof(styles));
+            St->daystyle = sty;
+            St->celstyle = csty;
+            return St;
         }
 
         result = strncmp(bes, be, 3);
         if (result == 0) {
-            char* sty = (char*)malloc(4);
-            strcpy_s(sty, 4,be);
-            return sty;
+            char* sty = (char*)malloc(5);
+            strcpy_s(sty, 5,bS);
+            char* csty = (char*)malloc(5);
+            strcpy_s(csty, 5, becel);
+            styles* St = (styles*)malloc(sizeof(styles));
+            St->daystyle = sty;
+            St->celstyle = csty;
+            return St;
         }
-
         len++;
     }
 
-    char* sty = (char*)malloc(4);
-    strcpy_s(sty, 4,be);
-    
-    return sty;
+    char* sty = (char*)malloc(5);
+    strcpy_s(sty, 5, bS);
+    char* csty = (char*)malloc(5);
+    strcpy_s(csty, 5, becel);
+    styles* St = (styles*)malloc(sizeof(styles));
+    St->daystyle = sty;
+    St->celstyle = csty;
+    return St;
 }
 
 Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, wchar_t* intxto, wchar_t* intxts, wchar_t* intxttwo, wchar_t* intxtthree, wchar_t* intxtfour)
@@ -137,12 +171,12 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
 
     char* mfile = writename(orderfn, orderlen); //テスト書き出し
     
-    char* setstyle = nullptr;//スタイルの設定
+    styles* setstyle = nullptr;//スタイルの設定
 
     char *inMainstr;
 
     //ワイド文字列(WCHAR*)をマルチバイト文字列(char*)に変換
-    char	wStrC[200] = { 0 };
+    char wStrC[200] = { 0 };
     size_t wLen = 0;
     errno_t err = 0;
 
@@ -389,7 +423,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
    スタイルシート読み込み
 
    -----------------------*/
-
+    
     char stylefn[] = "xl/styles.xml";
 
     std::ifstream Zr(orderfn, std::ios::in | std::ios::binary);
@@ -413,7 +447,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     HeaderRead* hr2 = new HeaderRead(orderfn);
     hr2->endread(&Zr);//終端コードの読み込み
     
-    
+    /*
     DeflateDecode* Sdeco = new DeflateDecode(&Zr);
 
     while (hr2->filenum < hr2->ER->centralsum) {
@@ -492,7 +526,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     delete styen;//share圧縮データ削除
     
     delete sr;//style 削除
-    
+    */
 
     /*-----------------------
     shareシート読み込み
@@ -512,6 +546,11 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
         hr2->localread(cddata->localheader, &Zr);//sharesstringsの読み込み
         decShare->dataread(hr2->LH->pos, cddata->nonsize);
         hr2->freeLH();
+    }
+
+    for (int i = 0; i < sharray->mycount; i++) {//シェアー文字列　メモリ解放
+        if (sharray->sis[i])
+            sharray->Sitablefree(sharray->sis[i]);
     }
         
     delete sharray;
@@ -608,7 +647,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
             mh->sheetread();
 
             sI = new searchItemNum(sg->its, mh);
-            t = sI->searchitemNumber(sharray->uniqstr, sharray->inputsinum[0], sharray->inputsinum[1], sharray->inputsinum[2], sharray->inputsinum[3], styleset);//品番検索　＆　セルデータ追加　シェアー消去（入れる場合は引数に）
+            t = sI->searchitemNumber(sharray->uniqstr, sharray->inputsinum[3], sharray->inputsinum[2], sharray->inputsinum[1], sharray->inputsinum[0], setstyle->daystyle,setstyle->celstyle);//品番検索　＆　セルデータ追加　シェアー消去（入れる場合は引数に）
 
             if (t)
             {//一致品番あった場合
@@ -680,7 +719,10 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     }
     //hr2->freetxt(inptxt);//入力文字列の削除
 
-    free(styleset);
+    //free(styleset);
+    free(setstyle->daystyle);
+    free(setstyle->celstyle);
+    free(setstyle);
 
     Items* errorItem = nullptr;
 
@@ -730,6 +772,12 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
         std::cout << "sheet no error" << std::endl;
     }
     sI->freerootmacht(matchsroot);
+
+    for (int i = 0; i < sharray->mycount; i++) {//シェアー文字列　メモリ解放
+        if (sharray->sis[i])
+            sharray->Sitablefree(sharray->sis[i]);
+    }
+
     delete sharray;
     delete sg;//アイテム　文字データ シートとセット削除
     delete ms;//シート　セル削除 PLシートデータ
@@ -756,15 +804,16 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     
     delete hr2;
 
-    fin.close();
+    if(fin)
+        fin.close();
 
     remove(onetimefn);
 
     if (fpr)
         fclose(fpr);
         
-
-    Zr.close();
+    if(Zr)
+        Zr.close();
     
     return errorItem;
 }

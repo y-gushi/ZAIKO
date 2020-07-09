@@ -9,10 +9,7 @@ shareRandD::shareRandD(UINT8* d, UINT64 l) {
 }
 
 shareRandD::~shareRandD() {
-    for (int i = 0; i < mycount; i++) {//シェアー文字列　メモリ解放
-        if(sis[i])
-            Sitablefree(sis[i]);
-    }
+    
     //free(writedata);
     //free(inputsinum);
 }
@@ -164,6 +161,22 @@ UINT8* shareRandD::writeshare(UINT8* instr, int instrlen,char *subone, char* sub
 
     int stocksic = siunique;
 
+    //サブ文字カウント
+    if (strlen(subfour) > 0 && !inputsinum[0]) {
+        siunique++; sicount++;
+    }
+    if (strlen(subthree) > 0 && !inputsinum[1]) {
+        siunique++; sicount++;
+    }
+    if (strlen(subtwo) > 0&& !inputsinum[2]) {
+        siunique++; sicount++;
+    }
+    if (strlen(subone) > 0&& !inputsinum[3]) {
+        siunique++; sicount++;
+    }
+    //メイン文字プラス
+    siunique++; sicount++;
+
     countstr = st.InttoChar(sicount, &sicount_place);
     uniqstr = st.InttoChar(siunique, &siunique_place);
 
@@ -272,14 +285,14 @@ UINT8* shareRandD::writeshare(UINT8* instr, int instrlen,char *subone, char* sub
     
     //サブ文字列追加 文字がある　si無し
     char* sin = nullptr;
-    if(!inputsinum[0])
-        inputsinum[0] = writeSubstr(writedata,subone);
-    if (!inputsinum[1])
-        inputsinum[1] = writeSubstr(writedata, subtwo);
-    if (!inputsinum[2])
-        inputsinum[2] = writeSubstr(writedata, subthree);
-    if (!inputsinum[3])
-        inputsinum[3] = writeSubstr(writedata, subfour);
+    if(!inputsinum[0] && strlen(subfour)>0)
+        inputsinum[0] = writeSubstr(writedata, subfour);
+    if (!inputsinum[1] && strlen(subthree) > 0)
+        inputsinum[1] = writeSubstr(writedata, subthree);
+    if (!inputsinum[2] && strlen(subtwo) > 0)
+        inputsinum[2] = writeSubstr(writedata, subtwo);
+    if (!inputsinum[3] && strlen(subone) > 0)
+        inputsinum[3] = writeSubstr(writedata, subone);
 
     
     //write to end
@@ -288,7 +301,7 @@ UINT8* shareRandD::writeshare(UINT8* instr, int instrlen,char *subone, char* sub
         datapos++;
         writeleng++;
     }
-    
+
     //std::cout << "uniqstr : " << uniqstr <<std::endl;
     Crc.mcrc(writedata, writeleng);
     buckcrc = Crc.crc32;
@@ -302,9 +315,8 @@ void shareRandD::searchSi(char* ipto, char* iptt, char* iptth, char* iptf) {
     int searcount = 0;
     UINT8* num = nullptr;
 
-    char* nv = nullptr;
     for (int i = 0; i < 5; i++)
-        inputsinum[i] = nv;
+        inputsinum[i] = nullptr;
 
     for (int i = 0; i < siunique; i++) {
         if (strlen(ipto) > 0) {

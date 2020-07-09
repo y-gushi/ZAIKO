@@ -20,7 +20,7 @@ public:
     searchItemNum(struct Items* itemstruct, Ctags* cs);
     ~searchItemNum();
 
-    bool searchitemNumber(UINT8* uniq, char* one, char* two, char* three, char* four, char* style);
+    bool searchitemNumber(UINT8* uniq, char* one, char* two, char* three, char* four, char* style, char* celstyle);
 
     void colorsearch(Row* inrow, Items* IT, UINT8* itn, char* s);
 

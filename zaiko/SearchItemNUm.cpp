@@ -11,7 +11,7 @@ searchItemNum::~searchItemNum() {
     
 }
 
-bool searchItemNum::searchitemNumber(UINT8* uniq,char* one,char* two,char*three,char* four,char* style) {
+bool searchItemNum::searchitemNumber(UINT8* uniq,char* one,char* two,char*three,char* four,char* style,char* celstyle) {
     Row* sr = nullptr;
     sr = Cels->rows;
     Items* Item = nullptr;
@@ -125,7 +125,7 @@ bool searchItemNum::searchitemNumber(UINT8* uniq,char* one,char* two,char*three,
             char* vsts = (char*)malloc(vlen);
             strcpy_s(vsts, vlen, (const char*)three);
 
-            F* nfs = (F*)malloc(sizeof(F)); nfs = nullptr;
+            F* nfs = nullptr;
             UINT8* nsis = nullptr;
 
             Cels->addcelldata(srow, incolumn, (UINT8*)tvs, (UINT8*)svs, (UINT8*)vsts, nfs, nsis);
@@ -156,7 +156,7 @@ bool searchItemNum::searchitemNumber(UINT8* uniq,char* one,char* two,char*three,
         sr = Cels->rows;
         result = strcmp((const char*)matchItem, (const char*)Item->itn);//品番　シートデータの比較
         if (result == 0) {
-            colorsearch(sr, Item, Item->itn, style);
+            colorsearch(sr, Item, Item->itn, celstyle);
         }
         Item = Item->next;
     }

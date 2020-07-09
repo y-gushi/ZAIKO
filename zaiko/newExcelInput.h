@@ -22,6 +22,11 @@
 #include "atlstr.h"
 #include "comutil.h"
 
+struct styles {
+	char* daystyle;
+	char* celstyle;
+};
+
 class excelRead {
 public:
 	excelRead();
@@ -35,7 +40,7 @@ public:
 	const char shpls[5] = "1122";
 	const char nomals[4] = "769";
 
-	char* searchshipplace(char* pl);
+	styles* searchshipplace(char* pl);
 
 	Items* datawrite(char* plfn, int pllen, char* orderfn, int orderlen, wchar_t* intxto, wchar_t* intxts, wchar_t* intxttwo, wchar_t* intxtthree, wchar_t* intxtfour);
 

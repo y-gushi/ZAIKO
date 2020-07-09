@@ -35,7 +35,7 @@ void Ctags::addcelldata(UINT8* row, UINT8* col, UINT8* t, UINT8* s, UINT8* v, F*
         UINT8 HT[] = "29.25";
         UINT8* hT = (UINT8*)malloc(6);
         strcpy_s((char*)hT, 6, (const char*)HT);
-        UINT8* thick = (UINT8*)malloc(1); thick = nullptr;
+        UINT8* thick = nullptr;
         UINT8* rs = nullptr;
         UINT8* CF = nullptr;
         UINT8 CH[] = "1";//customhigh
