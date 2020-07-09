@@ -447,7 +447,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     HeaderRead* hr2 = new HeaderRead(orderfn);
     hr2->endread(&Zr);//終端コードの読み込み
     
-    /*
+    
     DeflateDecode* Sdeco = new DeflateDecode(&Zr);
 
     while (hr2->filenum < hr2->ER->centralsum) {
@@ -475,19 +475,20 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
 
         return erroritem;
     }
-
+    
     checkstyle* sr = new checkstyle();
 
     sr->readstyle(Sdeco->ReadV, Sdeco->readlen);
 
     UINT32 styleleng = Sdeco->readlen;//style 解凍データ長
 
-    sr->configstyle((UINT8*)setstyle);//ショップ別スタイルセット
+    UINT8 teststyle[] = "bee";
+    sr->configstyle(teststyle);//ショップ別スタイルセット
 
     char* styleset = nullptr;
     UINT32 memsiz = UINT32(sr->stylelen) + 1;
     styleset = (char*)malloc(memsiz);
-    memcpy(styleset, sr->style, memsiz);//style copy
+    strcpy_s(styleset, memsiz, (const char*)sr->style);//style copy
 
     sr->styledatawrite(styleleng);
 
@@ -526,7 +527,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
     delete styen;//share圧縮データ削除
     
     delete sr;//style 削除
-    */
+    
 
     /*-----------------------
     shareシート読み込み
@@ -600,7 +601,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
         cddata->nonsize = sharray->writeleng;//内容変更したら　更新必要
 
         hw.centralwrite(cdf, *cddata);
-        //hr2->freeheader();
+        hr2->freeheader();
     }
 
     zip.writeposition += CDp;//データ書き込み位置更新
@@ -647,7 +648,8 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
             mh->sheetread();
 
             sI = new searchItemNum(sg->its, mh);
-            t = sI->searchitemNumber(sharray->uniqstr, sharray->inputsinum[3], sharray->inputsinum[2], sharray->inputsinum[1], sharray->inputsinum[0], setstyle->daystyle,setstyle->celstyle);//品番検索　＆　セルデータ追加　シェアー消去（入れる場合は引数に）
+            //t = sI->searchitemNumber(sharray->uniqstr, sharray->inputsinum[3], sharray->inputsinum[2], sharray->inputsinum[1], sharray->inputsinum[0], setstyle->daystyle,setstyle->celstyle);//品番検索　＆　セルデータ追加　シェアー消去（入れる場合は引数に）
+            t = sI->searchitemNumber(sharray->uniqstr, sharray->inputsinum[3], sharray->inputsinum[2], sharray->inputsinum[1], sharray->inputsinum[0], (char*)styleset, setstyle->celstyle);
 
             if (t)
             {//一致品番あった場合
@@ -707,7 +709,7 @@ Items* excelRead::datawrite(char* plfn, int pllen, char* orderfn, int orderlen, 
             result = strcmp(hr2->scd->filename, sharefn);
             int styresul= strcmp(hr2->scd->filename, stylefn);
 
-            if (result != 0) {//styleseet 入れる場合-> && styresul != 0
+            if (result != 0 && styresul != 0) {//styleseet 入れる場合-> && styresul != 0
                 //cddata一旦書き込み
                 UINT32 LHposstock = zip.writeposition;//ローカルヘッダーの位置更新用
                 zip.LoclheadAndDatacopy(hr2->scd->localheader, fpr, orderfn);//ローカルヘッダー検索＆書き込み

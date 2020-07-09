@@ -1074,6 +1074,11 @@ void Ctags::getfinalstr() {
     MC = nullptr;
 
     while (p < dlen) {
+        fstr[i] = data[p];
+        p++; i++;
+    }
+    /*
+    while (p < dlen) {
         for (int j = 0; j < 19 - 1; j++) {
             sm[j] = sm[j + 1];
             if (j < (16 - 1))
@@ -1104,6 +1109,7 @@ void Ctags::getfinalstr() {
             MC[len] = '\0';
         }
     }
+    */
     fstr[s] = '\0';
 
     /* <mergeCells count="15">

@@ -468,13 +468,13 @@ void DeflateDecode::CustomRead()
             fugoleng++;
         }
     }
-    
+    /*
     freetree(lenroot);
-    
+
     freetree(root);
-    
+
     freetree(hufhuf);
-    
+
     free(signs);
     free(lentable);
     free(lenlen);
@@ -482,11 +482,11 @@ void DeflateDecode::CustomRead()
     free(hufftable);
     free(hufval);
     free(lenh);
-    
+
     lenroot = nullptr;
     root = nullptr;
     hufhuf = nullptr;
-    //std::cout << "‰ð“€@•„†” : " << fugoleng << std::endl;
+    */
 }
 
 void DeflateDecode::noCompressRead()
@@ -527,7 +527,7 @@ void DeflateDecode::noCompressRead()
 }
 
 UINT64 DeflateDecode::dataread(UINT64 position, UINT32 size) {
-    /*if (lenroot)
+    if (lenroot)
         freetree(lenroot);
     if (root)
         freetree(root);
@@ -544,7 +544,7 @@ UINT64 DeflateDecode::dataread(UINT64 position, UINT32 size) {
     if (hufval)
         free(hufval);
     if (lenh)
-        free(lenh);*/
+        free(lenh);
 
     fr->seekg(position, std::ios::beg);
 
