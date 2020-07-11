@@ -28,7 +28,8 @@ using namespace Gdiplus;
 #define ScreenCenterX(Width) ((0)<((int)((GetSystemMetrics(SM_CXSCREEN)- Width) / 2)) ? ((int)((GetSystemMetrics(SM_CXSCREEN)- Width) / 2)) :(0))
 #define ScreenCenterY(Height) ((0)<((int)((GetSystemMetrics(SM_CYSCREEN)- Height) / 2)) ? ((int)((GetSystemMetrics(SM_CYSCREEN)- Height) / 2)) :(0))
 
-TCHAR fn[100];
+TCHAR fn[300];
+TCHAR fnt[300];
 TCHAR inipl[] = { _T("../Desktop") };
 OPENFILENAME o;
 charchange ci;
@@ -105,7 +106,7 @@ BOOL GetFileName(HWND hWnd, TCHAR* fname, int sz, TCHAR* initDir) {
     ZeroMemory(&o, sizeof(o));
     o.lStructSize = sizeof(o);              //      構造体サイズ
     o.hwndOwner = hWnd;                             //      親ウィンドウのハンドル
-    o.lpstrInitialDir = initDir;    //      初期フォルダー
+    //o.lpstrInitialDir = initDir;    //      初期フォルダー
     o.lpstrFile = fname;                    //      取得したファイル名を保存するバッファ
     o.nMaxFile = sz;                                //      取得したファイル名を保存するバッファサイズ
     o.lpstrFilter = _TEXT("xlsxファイル(*.xlsx)\0*.xlsx\0") _TEXT("全てのファイル(*.*)\0*.*\0");
@@ -248,8 +249,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     Items* deco = (Items*)malloc(sizeof(Items));
     deco = nullptr;
     int i = 0; int j = 0; int totalcount = 0;
-    TCHAR buf[1000];
-    char errorSheet[1000] = "シートがない品番：0";
+    TCHAR buf[300];
+    TCHAR bufb[300];
+    char errorSheet[3000] = "シートがない品番：0";
 
     int newsize = 0;
     wchar_t* wcstring = nullptr;
@@ -374,8 +376,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DestroyWindow(hWnd);
             break;
         case BUTTON1:
-            GetFileName(hWnd, fn, 1000, inipl);
-            TCHAR bufb[1000];
+            GetFileName(hWnd, fn, 300, inipl);
+            
             cs.changechar(o.lpstrFile);
             cs.filename[cs.len] = '\0';
 #ifdef UNICODE
@@ -387,7 +389,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             MessageBox(hWnd, bufb, L"ファイル名", MB_OK);
             break;
         case BUTTON2:
-            GetFileName(hWnd, fn, 1000, inipl);
+            GetFileName(hWnd, fnt, 300, inipl);
             ci.changechar(o.lpstrFile);
             ci.filename[ci.len] = '\0';
 #ifdef UNICODE
@@ -462,7 +464,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             else {
                 totalcount = 20;
             }
-            free(deco);
+
 
 #ifdef UNICODE
 
@@ -474,9 +476,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             MessageBox(hWnd, buf, L"入力できなかった品番・色", MB_OK);
 
             break;
-        default:
-            return DefWindowProc(hWnd, message, wParam, lParam);
         }
+        return 0;
     }
     break;
     case WM_PAINT:
@@ -492,10 +493,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
+    
+        return 0;
     }
-    return 0;
+    return DefWindowProc(hWnd, message, wParam, lParam);
+    
 }
 
 // バージョン情報ボックスのメッセージ ハンドラーです。

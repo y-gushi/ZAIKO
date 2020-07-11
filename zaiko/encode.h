@@ -7,6 +7,7 @@
 
 #define huff_of_huff_limit 5
 #define mile_literal_limit 13
+#define limit_stock_max 10
 
 class encoding {
 public:
@@ -35,8 +36,9 @@ public:
 
     unsigned char* encoderv;
     unsigned char* rvp;
+    UINT32 limstocksize;
 
-    UINT8 hccc;
+    UINT32 hccc;
     struct tab* hhc;//符号の符号カウント用ポインタ
     UINT32 hcc;//数値の種類のカウント
 

@@ -12,7 +12,7 @@ deflate::deflate()
 
 deflate::~deflate()
 {
-    free(limithuffstock);
+    //free(limithuffstock);
 }
 
 tnode* deflate::talloc(void)
@@ -27,12 +27,12 @@ tab* deflate::ttalloc(void)
 
 tnode* deflate::addtree(tnode* p, UINT32 n, UINT32* c)
 {
-    if (p == NULL) {
+    if (!p) {
         p = talloc();
         p->num = n;
         p->wei = 1;
         (*c)++;
-        p->left = p->right = NULL;
+        p->left = p->right = nullptr;
     }
     else if (n == p->num)
         p->wei++;
@@ -45,12 +45,12 @@ tnode* deflate::addtree(tnode* p, UINT32 n, UINT32* c)
 
 tab* deflate::addtab(tab* t, UINT32 n, UINT32* c)
 {
-    if (t == NULL) {
+    if (!t) {
         t = ttalloc();
         t->num = n;
         t->wei = 1;
         (*c)++;
-        t->next = NULL;
+        t->next = nullptr;
     }
     else if (t->num == n)
         t->wei++;
@@ -61,13 +61,13 @@ tab* deflate::addtab(tab* t, UINT32 n, UINT32* c)
 
 tab* deflate::addhuftab(tab* t, tnode* p, UINT32* c, UINT32* s)
 {
-    if (t == NULL) {
+    if (!t) {
         t = ttalloc();
         t->num = p->num;
         t->chi = p->chi;
         t->wei = 1;
         (*c)++;
-        t->next = NULL;
+        t->next = nullptr;
     }
     else if (t->chi == *s)//前の符号長と一緒の場合はカウントプラス
         t->wei++;
@@ -78,7 +78,7 @@ tab* deflate::addhuftab(tab* t, tnode* p, UINT32* c, UINT32* s)
 
 void deflate::treeprint(tnode* p, UINT32* m)
 {
-    if (p != NULL) {
+    if (p) {
         treeprint(p->left, m);
         if (p->chi > * m)
             *m = p->chi;
@@ -88,19 +88,19 @@ void deflate::treeprint(tnode* p, UINT32* m)
 
 void deflate::tabprint(tab* p)
 {
-    if (p != NULL) {
+    if (p) {
         tabprint(p->next);
     }
 }
 
 tab* deflate::makehuhu(tnode m, tab* n, UINT32* c)
 {
-    if (n == NULL) {
+    if (!n) {
         n = ttalloc();
         n->chi = m.chi;
         n->num = (*c)++;
         n->wei = 1;
-        n->next = NULL;
+        n->next = nullptr;
     }
     else
         n->next = makehuhu(m, n->next, c);
@@ -115,7 +115,7 @@ tab* deflate::huhu(tnode* n[], tnode* m[], UINT32 t, UINT32 l, UINT32 lim, UINT3
     UINT32 cou = 0;//要素数確認用
     bool flag = false;
     struct tnode* zero = talloc();
-    zero->wei = 0; zero->num = 0; zero->chi = 0; zero->left = zero->right = NULL;
+    zero->wei = 0; zero->num = 0; zero->chi = 0; zero->left = zero->right = nullptr;
     int stock = 350;//前の値の一時保存
     for (int i = 0; i < lim + 1; i++) {
         for (int j = 0; j < t; j++) {
@@ -185,12 +185,12 @@ tab* deflate::huhu(tnode* n[], tnode* m[], UINT32 t, UINT32 l, UINT32 lim, UINT3
 
 tab* deflate::runmake(tab* s, UINT32 c, UINT32 n)
 {
-    if (s == NULL) {
+    if (!s) {
         s = ttalloc();
         s->num = c;
         s->wei = n;
         s->chi = 0;
-        s->next = NULL;
+        s->next = nullptr;
     }
     else {
         s->next = runmake(s->next, c, n);
@@ -200,9 +200,10 @@ tab* deflate::runmake(tab* s, UINT32 c, UINT32 n)
 
 tab* deflate::runlen(tab* a)
 {
-    struct tab* b = NULL;
+    struct tab* b = nullptr;
+    struct tab* f = nullptr;//free用
     int stock = 0;//前の符号長を保存
-    while (a != NULL) {
+    while (a) {
         if (a->chi != 0) {//直前値の繰り返し
             if (a->wei < 4) {//a->wei 連続回数　が3までの数の場合は1つづつ追加
                 while (a->wei > 0) {
@@ -249,15 +250,17 @@ tab* deflate::runlen(tab* a)
                 }
             }
         }
+        f = a->next;
         stock = a->wei;
-        a = a->next;
+        free(a);
+        a = f;
     }
     return b;
 }
 
 void deflate::treeplas(tnode* p)
 {
-    if (p != NULL) {
+    if (p) {
         treeplas(p->left);
         p->chi++;
         treeplas(p->right);
@@ -270,7 +273,8 @@ tnode* deflate::tabcopy(tnode* p, tab s)
     p->num = s.num;
     p->wei = s.wei;
     p->chi = 0;
-    p->left = p->right = NULL;
+    p->left = nullptr;
+    p->right = nullptr;
     return p;
 }
 
@@ -320,11 +324,11 @@ void deflate::shellsortFugo(tnode* v[], int n)
 
 void deflate::swap(tnode* v[], int i, int j)
 {
-    struct tnode* temp = talloc();
+    //struct tnode* temp = talloc();
+    struct tnode* temp = nullptr;
     temp = v[i];
     v[i] = v[j];
     v[j] = temp;
-
 }
 
 tnode* deflate::treemake(tnode* r, tnode* l)
@@ -334,7 +338,7 @@ tnode* deflate::treemake(tnode* r, tnode* l)
     p->num = -1;
     p->wei = r->wei + l->wei;
     p->chi = (r->chi > l->chi ? r->chi : l->chi);
-    p->left = p->right = NULL;
+    p->left = p->right = nullptr;
 
     if (r->chi < l->chi) {//chi大きい方が左
         p->right = r;
@@ -414,7 +418,7 @@ tnode* deflate::limitedtreemake(tnode* r, tnode* l, UINT32 lim)
     p->num = -1;
     p->wei = r->wei + l->wei;
     p->chi = r->chi > l->chi ? r->chi : l->chi;
-    p->left = p->right = NULL;
+    p->left = p->right = nullptr;
 
     if (r->chi < l->chi) {//chi大きい方が左
         p->right = r;
@@ -451,7 +455,7 @@ tnode* deflate::limitedtreemake(tnode* r, tnode* l, UINT32 lim)
 void deflate::tabfree(tab* t)
 {
     struct tab* q;
-    while (t != NULL) {
+    while (t) {
         q = t->next;  /* 次へのポインタを保存 */
         free(t);
         t = q;
@@ -460,7 +464,7 @@ void deflate::tabfree(tab* t)
 
 void deflate::nodefree(tnode* tn)
 {
-    if (tn != NULL) {
+    if (tn) {
         nodefree(tn->left);
         nodefree(tn->right);
         free(tn);

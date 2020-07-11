@@ -20,7 +20,7 @@ Ctags::~Ctags() {
     free(dm->eR);
 
     free(MC);
-    free(margeCellCount);
+    //free(margeCellCount);
 
     free(fstr);
     free(wd);

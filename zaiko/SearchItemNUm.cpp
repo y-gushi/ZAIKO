@@ -321,8 +321,8 @@ void searchItemNum::colorsearch(Row* inrow, Items* IT, UINT8* itn,char* s) {
         }
         color = color->next;
     }
-    free(beforeSize); free(beforeColor);
-    free(nextColor); free(nextSize);
+    //free(beforeSize); free(beforeColor);
+    //free(nextColor); free(nextSize);
     free(nowColor); free(nowSize);
 }
 
@@ -338,7 +338,7 @@ void searchItemNum::freerootmacht(MatchColrs* m) {
 }
 
 UINT8* searchItemNum::strtalloc(UINT8* s) {
-    size_t sizlen = strlen((const char*)s) + 1;
+    size_t sizlen = strlen((const char*)s)+1;
     UINT8* sizadd = (UINT8*)malloc(sizlen);
     strcpy_s((char*)sizadd, sizlen, (const char*)s);
 

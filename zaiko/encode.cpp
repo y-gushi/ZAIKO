@@ -13,6 +13,8 @@ encoding::encoding() {
     l = 0;//距離の値のカウント
     lb = 0;//距離の拡張値のカウント
 
+    limstocksize = 0;
+
     encoderv = nullptr;
     rvp = nullptr;//参照ルート
     fir = nullptr;
@@ -231,6 +233,8 @@ void encoding::fixedcompress(slidewndow* s) {
                 datalen++;
             }
         }
+        free(d);
+        d = nullptr;
     }
 
     while (bits.bitpos > 0) {//残りビットを書き込む
@@ -270,8 +274,8 @@ void encoding::compress(unsigned char* data, UINT64 dataleng) {
         slidewndow* s = new slidewndow;
         deflate* def = new deflate;
         readpos = s->slidesearch(data, dataleng & 0xFFFFFFFF, readpos);
-
-        if (s->milestocksize < 300) {//固定ハフマン圧縮
+        //std::cout << "s size : " << s->milestocksize << std::endl;
+        if (s->milestocksize < 1000) {//固定ハフマン圧縮
             fixedcompress(s);
             kotei = true;
         }
@@ -381,27 +385,47 @@ void encoding::compress(unsigned char* data, UINT64 dataleng) {
                     }
                 }
             }
-            //huh解放 
-            for (int j = 0; j < hcc; j++)
-                def->nodefree(huhc[j]);
+
+            //huh解放
+            def->nodefree(huh[0]);
             free(huh);
+            free(huhc);
+
             //so開放
-            for (int j = 0; j < tcc; j++)
-                def->nodefree(sso[j]);
+            def->nodefree(so[0]);
             free(so);
+            free(sso);
+
             //lev開放
-            for (int j = 0; j < lcc; j++)
-                def->nodefree(llev[j]);
+            def->nodefree(lev[0]);
             free(lev);
+            free(llev);
+
             //tab解放
             def->tabfree(hh);
             def->tabfree(hhc);
-            free(hhh);
-        }
+            //free(hhh);
+            def->tabfree(fir);
+            def->tabfree(lir);
 
+            //長さ制限用メモリ開放
+            //for (int j = def->limitnum; j < limit_stock_max; j++)
+            free(def->limithuffstock);
+        }
+        /*
+        huh = nullptr;
+        huhc = nullptr;
+        so = nullptr;
+        sso = nullptr;
+        lev = nullptr;
+        llev = nullptr;
+        def->limithuffstock = nullptr;
+        hh = nullptr; hhc = nullptr; hhh = nullptr;
         delete s;
         delete def;
+        */
     }
+    std::cout << "compress len : " << datalen << std::endl;
 
     if (!kotei) {
         bits.BigendIn(0, 1);//1bit 最終ブロックかどうか
@@ -455,11 +479,14 @@ void encoding::makeSign(slidewndow* s, deflate* defl) {
     tc = 0;
     lc = 0;
     hcc = 0;
+    defl->limitnum = 0;
 
     maxlen = 0;
     lmaxlen = 0;
     fir = nullptr;
+    tab* firRoot = fir;
     lir = nullptr;
+    tab* lirRoot = lir;
     hh = nullptr;
     hhc = nullptr;
 
@@ -488,32 +515,31 @@ void encoding::makeSign(slidewndow* s, deflate* defl) {
 
     //リテラル・長さテーブルをツリー配列に入れる
     for (UINT32 i = 0; i < tc; i++) {
-        so[i] = sso[i] = defl->talloc();
+        //so[i] = sso[i] = defl->talloc();
         sso[i] = so[i] = defl->tabcopy(so[i], *fir);
         fir = fir->next;
     }
+    fir = firRoot;
     //距離値テーブルをツリー配列に入れる
     for (UINT32 i = 0; i < lc; i++) {
-        lev[i] = llev[i] = defl->talloc();
+        //lev[i] = llev[i] = defl->talloc();
         llev[i] = lev[i] = defl->tabcopy(lev[i], *lir);
         lir = lir->next;
     }
+    lir = lirRoot;
     //ハフマン符号の長さを決める
     while (tc > 1) {
         defl->quicksort(so, 0, tc - 1);
         so[tc - 2] = defl->treemake(so[tc - 1], so[tc - 2]);
-        so[tc - 1] = NULL;
+        so[tc - 1] = nullptr;
         tc--;
     }
-
-    defl->tabfree(fir);
-    defl->tabfree(lir);
-
+    //std::cout << "距離符号　lc : " <<lc<< std::endl;
     //ハフマン符号の長さを決める（距離）
     while (lc > 1) {
         defl->quicksort(lev, 0, lc - 1);
         lev[lc - 2] = defl->treemake(lev[lc - 1], lev[lc - 2]);
-        lev[lc - 1] = NULL;
+        lev[lc - 1] = nullptr;
         lc--;
     }
     defl->treeprint(so[0], &maxlen);//最大符号長を得る
@@ -531,7 +557,7 @@ void encoding::makeSign(slidewndow* s, deflate* defl) {
     hhh = hh;//ハフマン符号の符号配列はhhhを参照
 
     //符号の符号数値のカウント　hhはNULLになる
-    while (hh != NULL) {
+    while (hh != nullptr) {
         hhc = defl->addtab(hhc, hh->num, &hcc);
         hh = hh->next;
     }
@@ -548,27 +574,29 @@ void encoding::makeSign(slidewndow* s, deflate* defl) {
 
     if (huh && huhc) {
         for (UINT32 i = 0; i < hcc; i++) {//テーブルをツリー配列に入れる
-            huh[i] = huhc[i] = defl->talloc();
+            //huh[i] = huhc[i] = defl->talloc();
             huhc[i] = huh[i] = defl->tabcopy(huh[i], *hhc);
             hhc = hhc->next;
         }
 
         hhc = hhcc;
-
-        UINT32 limstocksize = tnodesize * 4;
+        //std::cout << "符号符号　hhc : " << hcc << std::endl;
+        limstocksize = tnodesize * limit_stock_max;
         defl->limithuffstock = (tnode**)malloc(limstocksize);
+        //for (int li = 0; li < limit_stock_max; li++)
+        //    defl->limithuffstock[li] = nullptr;
 
         while (hcc > 1) {//符号の符号の長さを決める
             defl->quicksort(huh, 0, hcc - 1);
             huh[hcc - 2] = defl->limitedtreemake(huh[hcc - 1], huh[hcc - 2], huff_of_huff_limit);
-            huh[hcc - 1] = NULL;
+            huh[hcc - 1] = nullptr;
             hcc--;
         }
 
         //長さ制限処理
         if (defl->limitnum > 1) {
             while (defl->limitnum > 1) {//2個の場合ソートエラーになる
-                //std::cout << "ツリーストック１個以上" << std::endl;
+                std::cout << "ツリーストック１個以上" << std::endl;
                 defl->quicksort(defl->limithuffstock, 0, defl->limitnum - 1);
                 defl->limithuffstock[defl->limitnum - 2] = defl->treemake(defl->limithuffstock[defl->limitnum - 1], defl->limithuffstock[defl->limitnum - 2]);
                 defl->limitnum--;
@@ -578,7 +606,7 @@ void encoding::makeSign(slidewndow* s, deflate* defl) {
         else if (defl->limitnum == 1) {
             huh[0] = defl->treemake(defl->limithuffstock[0], huh[0]);
         }
-        defl->limithuffstock = nullptr;//長さ制限用メモリ開放
+
         defl->treeprint(huh[0], &maxhh);//最大符号長を得る
         defl->shellsort(huhc, hccc);//数値でツリー数値を昇順に並べる
         defl->makehuff(huhc, maxhh + 1, hccc);//ハフマン符号を割り振る

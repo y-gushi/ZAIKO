@@ -147,7 +147,7 @@ void DeflateDecode::headdataread() {
     BFINAL = bit.bitoutvalue;
     bit.LittleendOut(2);
     BTYPE = bit.bitoutvalue;
-    std::cout << "圧縮タイプ　" << short(BTYPE) << std::endl;
+    //std::cout << "圧縮タイプ　" << short(BTYPE) << std::endl;
     if (BTYPE == 2) {
         bit.LittleendOut(5);
         HLIT = bit.bitoutvalue;//HLIT
@@ -468,13 +468,17 @@ void DeflateDecode::CustomRead()
             fugoleng++;
         }
     }
+    freetree(lenroot);
+    freetree(root);
+    free(signs);
+    lenroot = nullptr;
+    root = nullptr;
+    signs = nullptr;
+    //freetree(hufhuf);//静的
+
     /*
     freetree(lenroot);
-
     freetree(root);
-
-    freetree(hufhuf);
-
     free(signs);
     free(lentable);
     free(lenlen);
@@ -482,11 +486,9 @@ void DeflateDecode::CustomRead()
     free(hufftable);
     free(hufval);
     free(lenh);
-
-    lenroot = nullptr;
-    root = nullptr;
-    hufhuf = nullptr;
     */
+
+    //std::cout << "解凍　符号数 : " << fugoleng << std::endl;
 }
 
 void DeflateDecode::noCompressRead()
@@ -527,24 +529,13 @@ void DeflateDecode::noCompressRead()
 }
 
 UINT64 DeflateDecode::dataread(UINT64 position, UINT32 size) {
-    if (lenroot)
-        freetree(lenroot);
-    if (root)
-        freetree(root);
-    if (signs)
-        free(signs);
-    if (lentable)
-        free(lentable);
-    if (lenlen)
-        free(lenlen);
-    if (lenval)
-        free(lenval);
-    if (hufftable)
-        free(hufftable);
-    if (hufval)
-        free(hufval);
-    if (lenh)
-        free(lenh);
+
+    //free(lentable);
+    //free(lenlen);
+    //free(lenval);
+    //free(hufftable);
+    //free(hufval);
+    //free(lenh);
 
     fr->seekg(position, std::ios::beg);
 
@@ -603,7 +594,8 @@ int DeflateDecode::haffmanread() {
 
     //初期化
     signs = (unsigned int*)malloc(sizeof(unsigned int) * 400);
-    if (!signs) {}
+    if (!signs)
+        return 0;
     //signsRoot = signs;
 
     signSize = 0;
